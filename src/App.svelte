@@ -1,14 +1,42 @@
 <script>
+	import html2canvas from "html2canvas";
+
 	import Input from "./lib/Input.svelte";
 
 	let text = "Hello World!";
 	let text_color = "#222222";
-	let font_size = "48px";
+	let font_size = "48";
 	let font_weight = "bold";
 	let background = "#ffcccc url(https://bit.ly/3SKVrcF) no-repeat center";
-	let padding = "2rem";
+	let padding = "32";
 	let justify_content = "center";
 	let align_items = "center";
+
+	async function createImage() {
+		const element = document.getElementById("wrapper");
+		const img = await html2canvas(element, {
+			scale: 2,
+			allowTaint: true,
+		});
+
+		// @ts-ignore
+		const img_blob = new Blob([img], { type: "image/png" });
+		const img_url = URL.createObjectURL(img_blob);
+
+		document.body.appendChild(img);
+
+		console.log(img_url);
+		return img_url;
+	}
+
+	async function openImageInTab() {
+		createImage();
+		console.log("open");
+	}
+	function copyImageLink() {
+		createImage();
+		console.log("copy");
+	}
 </script>
 
 <h1 style="color:#f00;text-align:center;font-size:2rem;">
@@ -18,13 +46,28 @@
 <div class="page">
 	<div class="settings">
 		<Input name="text" label="Text:" bind:value={text} />
-		<Input name="text-color" label="Text color:" bind:value={text_color} />
-		<Input name="font-size" label="Font size:" bind:value={font_size} />
+		<Input
+			name="text-color"
+			label="Text color:"
+			type="color"
+			bind:value={text_color}
+		/>
+		<Input
+			name="font-size"
+			label="Font size (px):"
+			type="number"
+			bind:value={font_size}
+		/>
 		<Input name="background" label="Background:" bind:value={background} />
-		<Input name="padding" label="Padding:" bind:value={padding} />
+		<Input
+			name="padding"
+			label="Padding (px):"
+			type="number"
+			bind:value={padding}
+		/>
 
 		<div>
-			<label for="align-items">Vertical align:</label>
+			<label for="align-items">Vertical align (text):</label>
 			<select name="align-items" bind:value={align_items}>
 				<option value="flex-start">Top</option>
 				<option value="center">Center</option>
@@ -33,7 +76,7 @@
 		</div>
 
 		<div>
-			<label for="justify-content">Horizontal align:</label>
+			<label for="justify-content">Horizontal align (text):</label>
 			<select name="justify-content" bind:value={justify_content}>
 				<option value="flex-start">Left</option>
 				<option value="center">Center</option>
@@ -42,19 +85,25 @@
 		</div>
 	</div>
 
-	<div
-		id="wrapper"
-		style="
-  --background:{background}; 
-  --padding:{padding};
-  --align-items:{align_items}; 
+	<div>
+		<div
+			id="wrapper"
+			style="
+		--background:{background}; 
+		--padding:{`${padding}px`};
+		--align-items:{align_items}; 
   --justify-content:{justify_content}; 
   --text-color:{text_color};
-  --font-size:{font_size};
+  --font-size:{`${font_size}px`};
   --font-weight:{font_weight};
   "
-	>
-		{text}
+		>
+			{text}
+		</div>
+		<div>
+			<button on:click={openImageInTab}>Open image in new tab</button>
+			<button on:click={copyImageLink}>Copy image link</button>
+		</div>
 	</div>
 </div>
 
