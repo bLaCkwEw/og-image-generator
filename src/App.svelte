@@ -1,46 +1,44 @@
-<script>
-	import html2canvas from "html2canvas";
+<script lang="ts">
+	import domtoimage from "dom-to-image-more";
 
 	import Input from "./lib/Input.svelte";
 
 	let text = "Hello World!";
 	let text_color = "#222222";
+	let background_color = "#ffcccc";
+	let background_image =
+		"/* images must be base64 encoded */ linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)";
 	let font_size = "48";
-	let font_weight = "bold";
-	let background = "#ffcccc url(https://bit.ly/3SKVrcF) no-repeat center";
+	let font_weight = "600";
 	let padding = "32";
 	let justify_content = "center";
 	let align_items = "center";
 
 	async function createImage() {
 		const element = document.getElementById("wrapper");
-		const img = await html2canvas(element, {
-			scale: 2,
-			allowTaint: true,
+		const base64Img = await domtoimage.toPng(element, {
+			width: 1200,
+			height: 630,
 		});
 
-		// @ts-ignore
-		const img_blob = new Blob([img], { type: "image/png" });
-		const img_url = URL.createObjectURL(img_blob);
-
-		document.body.appendChild(img);
-
-		console.log(img_url);
-		return img_url;
+		return base64Img;
 	}
 
 	async function openImageInTab() {
-		createImage();
-		console.log("open");
+		const url = await createImage();
+		window.open(url, "_blank")
 	}
-	function copyImageLink() {
-		createImage();
-		console.log("copy");
+
+	async function copyImageLink() {
+		let url = await createImage();
+		navigator.clipboard.writeText(url);
 	}
 </script>
 
 <h1 style="color:#f00;text-align:center;font-size:2rem;">
-	No way to generate image yet and not mobile responsive
+	You need to download the images for use.
+	<br />
+	Not mobile responsive.
 </h1>
 
 <div class="page">
@@ -53,12 +51,29 @@
 			bind:value={text_color}
 		/>
 		<Input
+			name="background-color"
+			label="Background color:"
+			type="color"
+			bind:value={background_color}
+		/>
+		<Input
+			name="background-image"
+			label="Background image:"
+			bind:value={background_image}
+		/>
+
+		<Input
 			name="font-size"
 			label="Font size (px):"
 			type="number"
 			bind:value={font_size}
 		/>
-		<Input name="background" label="Background:" bind:value={background} />
+		<Input
+			name="font-weight"
+			label="Font weight:"
+			type="number"
+			bind:value={font_weight}
+		/>
 		<Input
 			name="padding"
 			label="Padding (px):"
@@ -89,13 +104,14 @@
 		<div
 			id="wrapper"
 			style="
-		--background:{background}; 
+		--background-color:{background_color}; 
+		--background-image: {background_image};
 		--padding:{`${padding}px`};
 		--align-items:{align_items}; 
-  --justify-content:{justify_content}; 
-  --text-color:{text_color};
-  --font-size:{`${font_size}px`};
-  --font-weight:{font_weight};
+  	--justify-content:{justify_content}; 
+		--text-color:{text_color};
+  	--font-size:{`${font_size}px`};
+		--font-weight:{font_weight};
   "
 		>
 			{text}
@@ -109,14 +125,17 @@
 
 <style>
 	#wrapper {
-		background: var(--background);
+		background-color: var(--background-color);
+		background-image: var(--background-image);
+		background-repeat: no-repeat;
+		background-position: center;
 
 		color: var(--text-color);
 		font-size: var(--font-size);
 		font-weight: var(--font-weight);
 
-		width: 600px; /* Scale x2 at build time */
-		height: 315px; /* Scale x2 at build time */
+		width: 1200px;
+		height: 630px;
 
 		display: flex;
 		align-items: var(--align-items); /* Vertical align */
@@ -134,8 +153,9 @@
 	}
 
 	.page {
-		display: flex;
-		gap: 6rem;
+		/* display: flex;
+		flex-direction: column;
+		gap: 6rem; */
 		width: fit-content;
 		margin: 0 auto;
 	}
